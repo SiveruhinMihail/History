@@ -1,0 +1,51 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+.EnterDropDown {
+  transform: translateY(-150%);
+  animation: isDropDown 0.6s forwards;
+}
+@keyframes isDropDown {
+  0% {
+    transform: translateY(-150%);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+.LeaveDropDown {
+  transform: translateY(0%);
+  animation: notDropDown 0.6s forwards;
+}
+@keyframes notDropDown {
+  0% {
+    transform: translateY(0%);
+  }
+  100% {
+    transform: translateY(-150%);
+  }
+}
+.EnterDropRight {
+  transform: translateX(150%);
+  animation: isDropRight 0.6s forwards;
+}
+@keyframes isDropRight {
+  0% {
+    transform: translateX(150%);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+.LeaveDropRight {
+  transform: translateX(0%);
+  animation: notDropRight 0.6s forwards;
+}
+@keyframes notDropRight {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(150%);
+  }
+}
