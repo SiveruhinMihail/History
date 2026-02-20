@@ -6,12 +6,11 @@ export const useStorage = () => {
   const { authUid, profile, updateProfile } = useAuth();
   const ensureAuthUid = async () => {
     if (authUid.value) return authUid.value;
-    // ждём до 2 секунд
-    for (let i = 0; i < 20; i++) {
-      await new Promise((resolve) => setTimeout(resolve, 100));
-      if (authUid.value) return authUid.value;
-    }
-    throw new Error("Не удалось получить авторизацию");
+    // Попробуем подождать загрузку профиля (если она идёт)
+    const { loadProfile } = useAuth();
+    await loadProfile(); // дождёмся
+    if (!authUid.value) throw new Error("Не удалось получить авторизацию");
+    return authUid.value;
   };
 
   /**
@@ -76,14 +75,10 @@ export const useStorage = () => {
    * Загрузка файла в бакет
    */
   const uploadFile = async (
-    bucket: "avatars" | "posts" | "temp",
+    bucket: "avatars" | "posts" | "temp" | "comments" | "community-avatars",
     file: File,
-    folder: string, // обычно authUid.value или postId
-    options?: {
-      upsert?: boolean;
-      cacheControl?: string;
-      optimize?: boolean;
-    },
+    folder: string,
+    options?: { upsert?: boolean; cacheControl?: string; optimize?: boolean },
   ) => {
     if (!authUid.value) throw new Error("Требуется авторизация");
 

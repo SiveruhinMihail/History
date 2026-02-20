@@ -1,8 +1,11 @@
+<script setup lang="ts">
+const { profile, isLoading } = useAuth();
+</script>
 <template>
   <div class="min-h-screen flex flex-col">
-    <FeaturesHeader />
+    <Header :profile="profile" :is-loading="isLoading" />
 
-    <main class="flex-1">
+    <main class="flex" style="margin-top: 4rem">
       <slot />
     </main>
   </div>

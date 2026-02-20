@@ -22,6 +22,8 @@ yarn install
 bun install
 ```
 
+npx supabase gen types typescript --project-id phlyzwfqtpddvgrprngo > app/types/supabase.ts
+
 ## Development Server
 
 Start the development server on `http://localhost:3000`:

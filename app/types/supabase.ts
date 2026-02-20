@@ -19,24 +19,59 @@ export type Database = {
           created_at: string | null
           id: number
           name: string | null
+          slug: string | null
         }
         Insert: {
           created_at?: string | null
           id?: number
           name?: string | null
+          slug?: string | null
         }
         Update: {
           created_at?: string | null
           id?: number
           name?: string | null
+          slug?: string | null
         }
         Relationships: []
+      }
+      comment_images: {
+        Row: {
+          comment_id: number
+          created_at: string | null
+          id: number
+          sort_order: number | null
+          url: string
+        }
+        Insert: {
+          comment_id: number
+          created_at?: string | null
+          id?: number
+          sort_order?: number | null
+          url: string
+        }
+        Update: {
+          comment_id?: number
+          created_at?: string | null
+          id?: number
+          sort_order?: number | null
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comment_images_comment_id_fkey"
+            columns: ["comment_id"]
+            isOneToOne: false
+            referencedRelation: "comments"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       comments: {
         Row: {
           created_at: string | null
           id: number
-          like: number | null
+          parent_id: number | null
           post_id: number | null
           text: string | null
           user_id: number | null
@@ -44,7 +79,7 @@ export type Database = {
         Insert: {
           created_at?: string | null
           id?: number
-          like?: number | null
+          parent_id?: number | null
           post_id?: number | null
           text?: string | null
           user_id?: number | null
@@ -52,12 +87,19 @@ export type Database = {
         Update: {
           created_at?: string | null
           id?: number
-          like?: number | null
+          parent_id?: number | null
           post_id?: number | null
           text?: string | null
           user_id?: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "comments_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "comments"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "comments_post_id_fkey"
             columns: ["post_id"]
@@ -83,7 +125,7 @@ export type Database = {
           name: string | null
           owner_id: number | null
           patent: boolean | null
-          rating: number | null
+          rating: number
         }
         Insert: {
           avatar?: string | null
@@ -93,7 +135,7 @@ export type Database = {
           name?: string | null
           owner_id?: number | null
           patent?: boolean | null
-          rating?: number | null
+          rating?: number
         }
         Update: {
           avatar?: string | null
@@ -103,12 +145,87 @@ export type Database = {
           name?: string | null
           owner_id?: number | null
           patent?: boolean | null
-          rating?: number | null
+          rating?: number
         }
         Relationships: [
           {
             foreignKeyName: "community_owner_id_fkey"
             columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "user"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      community_messages: {
+        Row: {
+          community_id: number
+          created_at: string | null
+          id: number
+          text: string
+          user_id: number
+        }
+        Insert: {
+          community_id: number
+          created_at?: string | null
+          id?: number
+          text: string
+          user_id: number
+        }
+        Update: {
+          community_id?: number
+          created_at?: string | null
+          id?: number
+          text?: string
+          user_id?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "community_messages_community_id_fkey"
+            columns: ["community_id"]
+            isOneToOne: false
+            referencedRelation: "community"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "community_messages_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      favorites: {
+        Row: {
+          created_at: string
+          id: number
+          post_id: number
+          user_id: number
+        }
+        Insert: {
+          created_at?: string
+          id?: number
+          post_id: number
+          user_id: number
+        }
+        Update: {
+          created_at?: string
+          id?: number
+          post_id?: number
+          user_id?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "favorites_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "post"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "favorites_user_id_fkey"
+            columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "user"
             referencedColumns: ["id"]
@@ -226,7 +343,8 @@ export type Database = {
           created_at: string | null
           description: string | null
           id: number
-          rating: number | null
+          image: string | null
+          moderation_status: string | null
           status: string | null
           title: string | null
         }
@@ -235,7 +353,8 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           id?: number
-          rating?: number | null
+          image?: string | null
+          moderation_status?: string | null
           status?: string | null
           title?: string | null
         }
@@ -244,7 +363,8 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           id?: number
-          rating?: number | null
+          image?: string | null
+          moderation_status?: string | null
           status?: string | null
           title?: string | null
         }
@@ -291,23 +411,93 @@ export type Database = {
           },
         ]
       }
+      post_images: {
+        Row: {
+          created_at: string | null
+          id: number
+          post_id: number
+          sort_order: number | null
+          url: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: number
+          post_id: number
+          sort_order?: number | null
+          url: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: number
+          post_id?: number
+          sort_order?: number | null
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_images_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "post"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reports: {
+        Row: {
+          created_at: string | null
+          id: number
+          reason: string | null
+          reporter_id: number | null
+          status: string | null
+          target_id: number
+          target_type: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: number
+          reason?: string | null
+          reporter_id?: number | null
+          status?: string | null
+          target_id: number
+          target_type?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: number
+          reason?: string | null
+          reporter_id?: number | null
+          status?: string | null
+          target_id?: number
+          target_type?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reports_reporter_id_fkey"
+            columns: ["reporter_id"]
+            isOneToOne: false
+            referencedRelation: "user"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       subscribers: {
         Row: {
           communities_id: number
           created_at: string | null
-          role: number | null
+          role: string | null
           user_id: number
         }
         Insert: {
           communities_id: number
           created_at?: string | null
-          role?: number | null
+          role?: string | null
           user_id: number
         }
         Update: {
           communities_id?: number
           created_at?: string | null
-          role?: number | null
+          role?: string | null
           user_id?: number
         }
         Relationships: [
@@ -329,7 +519,7 @@ export type Database = {
       }
       user: {
         Row: {
-          auth_uid: string | null
+          auth_uid: string
           avatar: string | null
           created_at: string | null
           description: string | null
@@ -337,16 +527,18 @@ export type Database = {
           gender: boolean | null
           id: number
           is_banned: boolean | null
+          level: number | null
           password: string | null
           phone: number | null
           rating: number | null
           role: string | null
           status: string | null
+          updated_at: string | null
           use: string | null
           username: string | null
         }
         Insert: {
-          auth_uid?: string | null
+          auth_uid: string
           avatar?: string | null
           created_at?: string | null
           description?: string | null
@@ -354,16 +546,18 @@ export type Database = {
           gender?: boolean | null
           id?: number
           is_banned?: boolean | null
+          level?: number | null
           password?: string | null
           phone?: number | null
           rating?: number | null
           role?: string | null
           status?: string | null
+          updated_at?: string | null
           use?: string | null
           username?: string | null
         }
         Update: {
-          auth_uid?: string | null
+          auth_uid?: string
           avatar?: string | null
           created_at?: string | null
           description?: string | null
@@ -371,11 +565,13 @@ export type Database = {
           gender?: boolean | null
           id?: number
           is_banned?: boolean | null
+          level?: number | null
           password?: string | null
           phone?: number | null
           rating?: number | null
           role?: string | null
           status?: string | null
+          updated_at?: string | null
           use?: string | null
           username?: string | null
         }

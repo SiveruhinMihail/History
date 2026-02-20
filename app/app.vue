@@ -1,8 +1,7 @@
-<script setup>
-</script>
+<script setup></script>
 
 <template>
-  <div class="app" style="font-family: JetBrainsMonoNL">
+  <div class="app" style="font-family: FiraMono">
     <NuxtLayout>
       <NuxtPage />
     </NuxtLayout>
@@ -12,7 +11,7 @@
 <style>
 @import url("./assets/css/index.css");
 @font-face {
-  font-family: "JetBrainsMonoNL";
-  src: url("/fonts/JetBrainsMonoNL-Regular.ttf");
+  font-family: "FiraMono";
+  src: url("../public/fonts/FiraMono-Regular.ttf");
 }
 </style>

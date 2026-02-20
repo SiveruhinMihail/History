@@ -1,4 +1,7 @@
 <script setup lang="ts">
+definePageMeta({
+  layout: "auth",
+});
 import type { Database } from "~/types/supabase";
 
 const submitted = ref(false);
@@ -81,29 +84,30 @@ const togglePasswordVisibility = (node: any) => {
 </script>
 
 <template>
-  <div class="flex items-center justify-center h-screen w-screen">
-    <div style="width: 50vw">
+  <div class="flex h-screen w-screen">
+    <!-- Левая половина с изображением на всю высоту -->
+    <div class="w-1/2 h-full overflow-hidden">
       <img
-        src="/favicon.ico"
-        class="object-cover place-self-center"
-        style="height: 2vw"
+        src="https://phlyzwfqtpddvgrprngo.supabase.co/storage/v1/object/public/avatars/auth.png"
+        alt="Registration background"
+        class="w-full h-full object-cover"
       />
     </div>
-    <div class="flex-grow ml-20">
-      <FormKit
-        id="registration-form"
-        type="form"
-        :form-class="submitted ? 'hide' : 'show'"
-        submit-label="Зарегистрироваться"
-        :actions="false"
-        incomplete-message="Введите данные"
-        @submit="submitHandler"
-      >
-        <h1 class="font-bold" style="font-size: 3.2vw; margin-bottom: 2vw">
-          Регистрация!
-        </h1>
 
-        <div class="mb-5">
+    <!-- Правая половина с центрированной формой -->
+    <div class="w-1/2 h-full flex items-center justify-center p-8">
+      <div class="w-full max-w-md">
+        <FormKit
+          id="registration-form"
+          type="form"
+          :form-class="submitted ? 'hide' : 'show'"
+          submit-label="Зарегистрироваться"
+          :actions="false"
+          incomplete-message="Введите данные"
+          @submit="submitHandler"
+        >
+          <h1 class="font-bold text-4xl mb-8">Регистрация!</h1>
+
           <FormKit
             type="text"
             name="name"
@@ -114,24 +118,22 @@ const togglePasswordVisibility = (node: any) => {
             input-class="text-lg py-2 px-4 w-full"
             :validation-messages="{ required: 'Пожалуйста, введите ваше имя.' }"
           />
-        </div>
 
-        <FormKit
-          type="email"
-          name="email"
-          label="Email"
-          placeholder="user@example.com"
-          help="Введите вашу почту"
-          validation="required|email"
-          label-class="text-lg"
-          input-class="text-lg py-2 px-4 w-full"
-          :validation-messages="{
-            required: 'Пожалуйста, введите ваш email.',
-            email: 'Пожалуйста, введите корректный email адрес.',
-          }"
-        />
+          <FormKit
+            type="email"
+            name="email"
+            label="Email"
+            placeholder="user@example.com"
+            help="Введите вашу почту"
+            validation="required|email"
+            label-class="text-lg"
+            input-class="text-lg py-2 px-4 w-full"
+            :validation-messages="{
+              required: 'Пожалуйста, введите ваш email.',
+              email: 'Пожалуйста, введите корректный email адрес.',
+            }"
+          />
 
-        <div class="double">
           <FormKit
             type="password"
             name="password"
@@ -165,23 +167,21 @@ const togglePasswordVisibility = (node: any) => {
             suffix-icon="eyeClosed"
             @suffix-icon-click="togglePasswordVisibility"
           />
+
+          <FormKit type="submit" class="mt-5">Продолжить ></FormKit>
+        </FormKit>
+
+        <div v-if="formErrors.general" class="text-red-500 mt-4">
+          {{ formErrors.general }}
         </div>
 
-        <div class="mt-5 text-left">
-          <FormKit type="submit">Продолжить ></FormKit>
+        <NuxtLink to="/auth/login" class="block mt-4 text-sm">
+          Уже есть аккаунт
+        </NuxtLink>
+
+        <div v-if="submitted && !formErrors.general" class="mt-4">
+          <h2 class="text-xl text-green-500">Регистрация прошла успешно!</h2>
         </div>
-      </FormKit>
-
-      <div v-if="formErrors.general" class="text-red-500 mb-4">
-        {{ formErrors.general }}
-      </div>
-
-      <NuxtLink :to="{ path: '/auth/login' }" class="block mt-4">
-        <div style="font-size: 1vw">Уже есть аккаунт</div>
-      </NuxtLink>
-
-      <div v-if="submitted && !formErrors.general" class="mt-4">
-        <h2 class="text-xl text-green-500">Регистрация прошла успешно!</h2>
       </div>
     </div>
   </div>
