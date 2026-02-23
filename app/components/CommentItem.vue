@@ -1,3 +1,31 @@
+<script setup lang="ts">
+import { computed } from "vue";
+import { HeartIcon, FlagIcon } from "@heroicons/vue/24/outline";
+
+const props = defineProps<{
+  comment: any;
+  isAuthenticated: boolean;
+}>();
+
+const emit = defineEmits<{
+  (e: "like" | "reply" | "report", comment: any): void;
+  (e: "open-image", images: string[], index: number): void;
+}>();
+
+const imageUrls = computed(
+  () => props.comment.images?.map((img: any) => img.url) || [],
+);
+
+function formatDate(date: string) {
+  return new Date(date).toLocaleDateString("ru-RU", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+</script>
 <template>
   <div class="border rounded-lg p-4">
     <!-- Шапка -->
@@ -32,6 +60,20 @@
         >
           Ответить
         </button>
+        <!-- Жалоба -->
+        <button
+          @click="$emit('report', comment)"
+          :disabled="!isAuthenticated || comment.reported"
+          class="text-sm text-gray-500 hover:text-yellow-600 disabled:opacity-50"
+          :title="comment.reported ? 'Вы уже отправили жалобу' : 'Пожаловаться'"
+        >
+          <FlagIcon
+            :class="[
+              comment.reported ? 'text-red-500 fill-red-500' : 'text-gray-400',
+            ]"
+            class="w-4 h-4"
+          />
+        </button>
       </div>
     </div>
     <!-- Текст -->
@@ -58,13 +100,7 @@
         :key="idx"
         :src="img.url"
         class="h-20 w-20 object-cover rounded cursor-pointer hover:opacity-80 transition"
-        @click="
-          $emit(
-            'open-image',
-            comment.images.map((i: any) => i.url),
-            idx as number,
-          )
-        "
+        @click="$emit('open-image', imageUrls, idx as number)"
       />
     </div>
 
@@ -78,34 +114,11 @@
         :key="child.id"
         :comment="child"
         :is-authenticated="isAuthenticated"
-        @like="$emit('like', $event)"
-        @reply="$emit('reply', $event)"
+        @like="(c) => $emit('like', c)"
+        @reply="(c) => $emit('reply', c)"
+        @report="(c) => $emit('report', c)"
+        @open-image="(images, index) => $emit('open-image', images, index)"
       />
     </div>
   </div>
 </template>
-
-<script setup lang="ts">
-import { HeartIcon } from "@heroicons/vue/24/outline";
-
-defineProps<{
-  comment: any;
-  isAuthenticated: boolean;
-}>();
-
-defineEmits<{
-  (e: "like", comment: any): void;
-  (e: "reply", comment: any): void;
-  (e: "open-image", images: string[], index: number): void;
-}>();
-
-function formatDate(date: string) {
-  return new Date(date).toLocaleDateString("ru-RU", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
-</script>

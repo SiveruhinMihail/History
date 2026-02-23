@@ -1,61 +1,3 @@
-<template>
-  <div class="mb-4">
-    <div v-if="replyTo" class="text-sm text-gray-600 mb-2">
-      Ответ {{ replyTo }}
-      <button
-        @click="$emit('cancel')"
-        class="text-red-500 hover:underline ml-2"
-      >
-        Отмена
-      </button>
-    </div>
-    <textarea
-      v-model="text"
-      rows="3"
-      class="w-full border rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-300"
-      :placeholder="replyTo ? 'Ваш ответ...' : 'Напишите комментарий...'"
-    ></textarea>
-
-    <!-- Выбор изображений -->
-    <input
-      type="file"
-      accept="image/*"
-      multiple
-      @change="handleImagesChange"
-      class="mt-2"
-    />
-    <div v-if="imagePreviews.length" class="flex flex-wrap gap-2 mt-2">
-      <div v-for="(preview, idx) in imagePreviews" :key="idx" class="relative">
-        <img :src="preview" class="h-16 w-16 object-cover rounded" />
-        <button
-          type="button"
-          @click="removeImage(idx)"
-          class="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
-        >
-          ×
-        </button>
-      </div>
-    </div>
-
-    <div class="flex justify-end mt-2 gap-2">
-      <button
-        v-if="replyTo"
-        @click="$emit('cancel')"
-        class="px-4 py-2 text-gray-600 hover:text-gray-800"
-      >
-        Отмена
-      </button>
-      <button
-        @click="submit"
-        :disabled="!text.trim() || submitting"
-        class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
-      >
-        {{ submitting ? "Отправка..." : replyTo ? "Ответить" : "Отправить" }}
-      </button>
-    </div>
-  </div>
-</template>
-
 <script setup lang="ts">
 import { useStorage } from "~/composables/useStorage";
 import type { Database } from "~/types/supabase";
@@ -184,3 +126,60 @@ async function submit() {
   }
 }
 </script>
+<template>
+  <div class="mb-4">
+    <div v-if="replyTo" class="text-sm text-gray-600 mb-2">
+      Ответ {{ replyTo }}
+      <button
+        @click="$emit('cancel')"
+        class="text-red-500 hover:underline ml-2"
+      >
+        Отмена
+      </button>
+    </div>
+    <textarea
+      v-model="text"
+      rows="3"
+      class="w-full border rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-300"
+      :placeholder="replyTo ? 'Ваш ответ...' : 'Напишите комментарий...'"
+    ></textarea>
+
+    <!-- Выбор изображений -->
+    <input
+      type="file"
+      accept="image/*"
+      multiple
+      @change="handleImagesChange"
+      class="mt-2"
+    />
+    <div v-if="imagePreviews.length" class="flex flex-wrap gap-2 mt-2">
+      <div v-for="(preview, idx) in imagePreviews" :key="idx" class="relative">
+        <img :src="preview" class="h-16 w-16 object-cover rounded" />
+        <button
+          type="button"
+          @click="removeImage(idx)"
+          class="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
+        >
+          ×
+        </button>
+      </div>
+    </div>
+
+    <div class="flex justify-end mt-2 gap-2">
+      <button
+        v-if="replyTo"
+        @click="$emit('cancel')"
+        class="px-4 py-2 text-gray-600 hover:text-gray-800"
+      >
+        Отмена
+      </button>
+      <button
+        @click="submit"
+        :disabled="!text.trim() || submitting"
+        class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+      >
+        {{ submitting ? "Отправка..." : replyTo ? "Ответить" : "Отправить" }}
+      </button>
+    </div>
+  </div>
+</template>

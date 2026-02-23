@@ -1,3 +1,47 @@
+<script setup lang="ts">
+const props = defineProps<{
+  images: string[];
+  initialIndex?: number;
+}>();
+
+const emit = defineEmits<{
+  (e: "close"): void;
+}>();
+
+const isOpen = ref(true);
+const currentIndex = ref(props.initialIndex || 0);
+
+const currentImage = computed(() => props.images[currentIndex.value] || "");
+
+function next() {
+  if (props.images.length > 0) {
+    currentIndex.value = (currentIndex.value + 1) % props.images.length;
+  }
+}
+
+function prev() {
+  if (props.images.length > 0) {
+    currentIndex.value =
+      (currentIndex.value - 1 + props.images.length) % props.images.length;
+  }
+}
+
+function close() {
+  isOpen.value = false;
+  emit("close");
+}
+
+// Закрытие по Escape
+onMounted(() => {
+  const handleKey = (e: KeyboardEvent) => {
+    if (e.key === "Escape") close();
+    if (e.key === "ArrowRight") next();
+    if (e.key === "ArrowLeft") prev();
+  };
+  window.addEventListener("keydown", handleKey);
+  onUnmounted(() => window.removeEventListener("keydown", handleKey));
+});
+</script>
 <template>
   <Teleport to="body">
     <div
@@ -47,48 +91,3 @@
     </div>
   </Teleport>
 </template>
-
-<script setup lang="ts">
-const props = defineProps<{
-  images: string[];
-  initialIndex?: number;
-}>();
-
-const emit = defineEmits<{
-  (e: "close"): void;
-}>();
-
-const isOpen = ref(true);
-const currentIndex = ref(props.initialIndex || 0);
-
-const currentImage = computed(() => props.images[currentIndex.value] || "");
-
-function next() {
-  if (props.images.length > 0) {
-    currentIndex.value = (currentIndex.value + 1) % props.images.length;
-  }
-}
-
-function prev() {
-  if (props.images.length > 0) {
-    currentIndex.value =
-      (currentIndex.value - 1 + props.images.length) % props.images.length;
-  }
-}
-
-function close() {
-  isOpen.value = false;
-  emit("close");
-}
-
-// Закрытие по Escape
-onMounted(() => {
-  const handleKey = (e: KeyboardEvent) => {
-    if (e.key === "Escape") close();
-    if (e.key === "ArrowRight") next();
-    if (e.key === "ArrowLeft") prev();
-  };
-  window.addEventListener("keydown", handleKey);
-  onUnmounted(() => window.removeEventListener("keydown", handleKey));
-});
-</script>

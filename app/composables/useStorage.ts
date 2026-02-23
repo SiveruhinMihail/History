@@ -224,7 +224,9 @@ export const useStorage = () => {
       if (bucketIndex !== -1 && bucketIndex + 1 < pathParts.length) {
         return pathParts.slice(bucketIndex + 1).join("/");
       }
-    } catch (e) {}
+    } catch (e) {
+      console.error(e);
+    }
     return null;
   };
 

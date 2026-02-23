@@ -101,12 +101,6 @@ export const useUser = () => {
       .eq("post.author_id", user.id); // нужно через join, но в RPC проще
 
     // Лайки к комментариям, полученные пользователем
-    const { data: commentLikes } = await supabase
-      .from("like_to_comment")
-      .select("created_at")
-      .gte("created_at", start)
-      .lte("created_at", end)
-      .eq("comment.user_id", user.id);
 
     // Комментарии, оставленные пользователем
     const { data: comments } = await supabase
@@ -117,12 +111,6 @@ export const useUser = () => {
       .eq("user_id", user.id);
 
     // Посты, созданные пользователем (если нужно отслеживать активность постинга)
-    const { data: posts } = await supabase
-      .from("post")
-      .select("created_at")
-      .gte("created_at", start)
-      .lte("created_at", end)
-      .eq("author_id", user.id);
 
     // Агрегируем по дням
     const dates = [];

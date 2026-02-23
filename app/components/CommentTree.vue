@@ -1,82 +1,3 @@
-<template>
-  <div class="space-y-4">
-    <div
-      v-for="comment in comments"
-      :key="comment.id"
-      class="border rounded p-4"
-    >
-      <!-- Шапка комментария -->
-      <div class="flex items-start gap-2 mb-2">
-        <img
-          v-if="comment.user?.avatar"
-          :src="comment.user.avatar"
-          class="w-8 h-8 rounded-full object-cover"
-        />
-        <div class="flex-1">
-          <NuxtLink
-            :to="`/user/${comment.user?.username}`"
-            class="font-semibold hover:text-blue-600"
-          >
-            {{ comment.user?.use || comment.user?.username }}
-          </NuxtLink>
-          <span class="text-xs text-gray-500 ml-2">{{
-            formatDate(comment.created_at)
-          }}</span>
-        </div>
-        <button
-          v-if="isAuthenticated"
-          @click="toggleLike(comment)"
-          class="flex items-center gap-1 text-sm"
-          :title="comment.isLiked ? 'Убрать лайк' : 'Лайк'"
-        >
-          <HeartIcon
-            :class="
-              comment.isLiked ? 'text-red-500 fill-red-500' : 'text-gray-400'
-            "
-            class="w-4 h-4"
-          />
-          <span>{{ comment.like }}</span>
-        </button>
-      </div>
-
-      <!-- Текст комментария -->
-      <p class="text-gray-800 mb-2">{{ comment.text }}</p>
-
-      <!-- Кнопка ответа -->
-      <button
-        v-if="isAuthenticated"
-        @click="startReply(comment)"
-        class="text-sm text-blue-600 hover:underline"
-      >
-        Ответить
-      </button>
-
-      <!-- Форма ответа (если активна) -->
-      <CommentForm
-        v-if="replyingTo === comment.id"
-        :post-id="postId"
-        :parent-id="comment.id"
-        :reply-to="comment.user?.use"
-        @comment-added="handleReplyAdded"
-        @cancel="replyingTo = null"
-        class="mt-4 ml-6"
-      />
-
-      <!-- Вложенные комментарии -->
-      <div
-        v-if="comment.replies && comment.replies.length"
-        class="ml-6 mt-4 space-y-4"
-      >
-        <CommentTree
-          :comments="comment.replies"
-          :post-id="postId"
-          @reply="handleReply"
-        />
-      </div>
-    </div>
-  </div>
-</template>
-
 <script setup lang="ts">
 import { HeartIcon } from "@heroicons/vue/24/outline";
 import { useAuth } from "~/composables/useAuth";
@@ -193,3 +114,81 @@ function formatDate(date: string) {
   });
 }
 </script>
+<template>
+  <div class="space-y-4">
+    <div
+      v-for="comment in comments"
+      :key="comment.id"
+      class="border rounded p-4"
+    >
+      <!-- Шапка комментария -->
+      <div class="flex items-start gap-2 mb-2">
+        <img
+          v-if="comment.user?.avatar"
+          :src="comment.user.avatar"
+          class="w-8 h-8 rounded-full object-cover"
+        />
+        <div class="flex-1">
+          <NuxtLink
+            :to="`/user/${comment.user?.username}`"
+            class="font-semibold hover:text-blue-600"
+          >
+            {{ comment.user?.use || comment.user?.username }}
+          </NuxtLink>
+          <span class="text-xs text-gray-500 ml-2">{{
+            formatDate(comment.created_at)
+          }}</span>
+        </div>
+        <button
+          v-if="isAuthenticated"
+          @click="toggleLike(comment)"
+          class="flex items-center gap-1 text-sm"
+          :title="comment.isLiked ? 'Убрать лайк' : 'Лайк'"
+        >
+          <HeartIcon
+            :class="
+              comment.isLiked ? 'text-red-500 fill-red-500' : 'text-gray-400'
+            "
+            class="w-4 h-4"
+          />
+          <span>{{ comment.like }}</span>
+        </button>
+      </div>
+
+      <!-- Текст комментария -->
+      <p class="text-gray-800 mb-2">{{ comment.text }}</p>
+
+      <!-- Кнопка ответа -->
+      <button
+        v-if="isAuthenticated"
+        @click="startReply(comment)"
+        class="text-sm text-blue-600 hover:underline"
+      >
+        Ответить
+      </button>
+
+      <!-- Форма ответа (если активна) -->
+      <CommentForm
+        v-if="replyingTo === comment.id"
+        :post-id="postId"
+        :parent-id="comment.id"
+        :reply-to="comment.user?.use"
+        @comment-added="handleReplyAdded"
+        @cancel="replyingTo = null"
+        class="mt-4 ml-6"
+      />
+
+      <!-- Вложенные комментарии -->
+      <div
+        v-if="comment.replies && comment.replies.length"
+        class="ml-6 mt-4 space-y-4"
+      >
+        <CommentTree
+          :comments="comment.replies"
+          :post-id="postId"
+          @reply="handleReply"
+        />
+      </div>
+    </div>
+  </div>
+</template>

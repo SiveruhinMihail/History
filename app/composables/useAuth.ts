@@ -44,7 +44,7 @@ export const useAuth = () => {
     loaded.value = true;
     return profile.value;
   };
-  if (process.client && !loaded.value) {
+  if (import.meta.client && !loaded.value) {
     loadProfile();
   }
 

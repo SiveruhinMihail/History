@@ -10,7 +10,6 @@ interface CropperOptions {
 }
 
 interface Cropper {
-  new (element: HTMLImageElement, options: CropperOptions): Cropper;
   destroy(): void;
   getCroppedCanvas(options?: {
     width?: number;

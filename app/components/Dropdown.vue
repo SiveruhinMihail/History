@@ -4,9 +4,9 @@ import {
   UserIcon,
   BriefcaseIcon,
   PlusIcon,
-  FolderIcon,
   ArrowRightStartOnRectangleIcon,
   PencilIcon,
+  FlagIcon,
 } from "@heroicons/vue/24/outline";
 const { signOut } = useAuth();
 const handleLogout = async () => {
@@ -78,16 +78,27 @@ const data = defineProps<DropDown_Props>();
         </NuxtLink>
 
         <!-- Модерация (только admin) -->
-        <NuxtLink
-          v-if="role === 'admin'"
-          :to="`/moder/${auth_uid}`"
-          class="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors border-t border-gray-100"
-          role="menuitem"
-          tabindex="-1"
-        >
-          <BriefcaseIcon class="w-5 h-5 mr-3 text-gray-400" />
-          Модерация
-        </NuxtLink>
+        <!-- Модерация (для модератора и админа) -->
+        <template v-if="role === 'admin' || role === 'moderator'">
+          <NuxtLink
+            to="/moderate/posts"
+            class="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors border-t border-gray-100"
+            role="menuitem"
+            tabindex="-1"
+          >
+            <BriefcaseIcon class="w-5 h-5 mr-3 text-gray-400" />
+            Модерация постов
+          </NuxtLink>
+          <NuxtLink
+            to="/moderate/reports"
+            class="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors border-t border-gray-100"
+            role="menuitem"
+            tabindex="-1"
+          >
+            <FlagIcon class="w-5 h-5 mr-3 text-gray-400" />
+            Жалобы
+          </NuxtLink>
+        </template>
 
         <!-- Создать модератора (только admin) -->
         <NuxtLink
@@ -102,15 +113,6 @@ const data = defineProps<DropDown_Props>();
         </NuxtLink>
 
         <!-- Мои посты -->
-        <NuxtLink
-          :to="`/my_routes/${auth_uid}`"
-          class="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors border-t border-gray-100"
-          role="menuitem"
-          tabindex="-1"
-        >
-          <FolderIcon class="w-5 h-5 mr-3 text-gray-400" />
-          Мои посты
-        </NuxtLink>
 
         <!-- Выход -->
         <button

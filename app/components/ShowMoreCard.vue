@@ -1,3 +1,6 @@
+<script setup lang="ts">
+defineProps<{ categorySlug: string }>();
+</script>
 <template>
   <NuxtLink
     :to="`/categories/${categorySlug}`"
@@ -9,7 +12,3 @@
     </div>
   </NuxtLink>
 </template>
-
-<script setup lang="ts">
-defineProps<{ categorySlug: string }>();
-</script>

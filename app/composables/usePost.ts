@@ -1,100 +1,122 @@
 import type { Database } from "~/types/supabase";
 
-type Post = Database["public"]["Tables"]["post"]["Row"];
-
 export const usePosts = () => {
   const supabase = useSupabaseClient<Database>();
 
-  const getAllCategories = async () => {
-    const { data, error } = await supabase
+  const getHomeFeed = async (limit: number = 12) => {
+    // Получаем все категории
+    const { data: categories } = await supabase
       .from("category")
-      .select("*")
-      .order("name");
-    if (error) throw error;
-    return data;
+      .select("id, name, slug, created_at");
+
+    if (!categories) return [];
+
+    const feed = await Promise.all(
+      categories.map(async (category) => {
+        const { data: postIdsData } = await supabase
+          .from("post_categories")
+          .select("post_id")
+          .eq("category_id", category.id);
+
+        if (!postIdsData || postIdsData.length === 0) {
+          return { category, posts: [] };
+        }
+
+        const postIds = postIdsData.map((p) => p.post_id);
+
+        const { data: posts } = await supabase
+          .from("post")
+          .select(
+            `
+            *,
+            post_images (*),
+            likes:like_to_post(count),
+            comments:comments(count)
+          `,
+          )
+          .in("id", postIds)
+          .eq("moderation_status", "approved")
+          .order("rating", { ascending: false }) // сначала популярные
+          .order("created_at", { ascending: false }) // потом новые
+          .limit(limit);
+
+        return {
+          category,
+          posts: posts || [],
+        };
+      }),
+    );
+
+    return feed.filter((item) => item.posts.length > 0);
   };
-  const getCategoryBySlug = async (slug: string) => {
-    const { data, error } = await supabase
-      .from("category")
-      .select("*")
-      .eq("slug", slug)
-      .single();
-    if (error) throw error;
-    return data;
+
+  const getRecommendedPosts = async (limit: number = 10) => {
+    const { data } = await supabase
+      .from("post")
+      .select(
+        `
+        *,
+        post_images (*),
+        likes:like_to_post(count),
+        comments:comments(count)
+      `,
+      )
+      .eq("moderation_status", "approved")
+      .order("rating", { ascending: false })
+      .order("created_at", { ascending: false })
+      .limit(limit);
+
+    return data || [];
   };
 
   const getPostsByCategory = async (
     categoryId: number,
-    limit: number = 10,
+    limit: number = 20,
     offset: number = 0,
   ) => {
-    // сначала получаем id постов
-    const { data: postLinks, error: linkError } = await supabase
+    const { data: postIdsData } = await supabase
       .from("post_categories")
       .select("post_id")
-      .eq("category_id", categoryId)
-      .range(offset, offset + limit - 1);
+      .eq("category_id", categoryId);
 
-    if (linkError) throw linkError;
-    if (!postLinks || postLinks.length === 0) return [];
+    if (!postIdsData || postIdsData.length === 0) {
+      return [];
+    }
 
-    const postIds = postLinks.map((link) => link.post_id);
+    const postIds = postIdsData.map((p) => p.post_id);
 
-    const { data: posts, error } = await supabase
+    const { data } = await supabase
       .from("post")
       .select(
         `
-      *,
-      author:user!author_id(*),
-      post_images (*),
-      comments_count:comments(count)
-    `,
+        *,
+        post_images (*),
+        likes:like_to_post(count),
+        comments:comments(count)
+      `,
       )
       .in("id", postIds)
-      .order("created_at", { ascending: false });
+      .eq("moderation_status", "approved")
+      .order("rating", { ascending: false })
+      .order("created_at", { ascending: false })
+      .range(offset, offset + limit - 1);
 
-    if (error) throw error;
-    return posts as (Post & { post_images: any[] })[];
+    return data || [];
   };
 
-  const getHomeFeed = async (postsPerCategory: number = 12) => {
-    const categories = await getAllCategories();
-    // Параллельно загружаем посты для всех категорий
-    const postsPromises = categories.map((cat) =>
-      getPostsByCategory(cat.id, postsPerCategory),
-    );
-    const allPostsArrays = await Promise.all(postsPromises);
-    // Формируем фид, отфильтровывая категории без постов
-    const feed = categories
-      .map((category, index) => ({
-        category,
-        posts: allPostsArrays[index],
-      }))
-      .filter((item) => item.posts && item.posts.length > 0);
-    return feed;
-  };
-  const getRecommendedPosts = async (limit: number = 10) => {
-    const { data, error } = await supabase
-      .from("post")
-      .select(
-        `
-      *,
-      author:user!author_id(*),
-      post_images (*),
-      comments_count:comments(count),
-      likes:like_to_post(count)
-    `,
-      )
-      .order("created_at", { ascending: false }) // временно сортируем по дате
-      .limit(limit);
-    if (error) throw error;
+  const getCategoryBySlug = async (slug: string) => {
+    const { data } = await supabase
+      .from("category")
+      .select("*")
+      .eq("slug", slug)
+      .single();
     return data;
   };
+
   return {
-    getAllCategories,
-    getPostsByCategory,
     getHomeFeed,
     getRecommendedPosts,
+    getPostsByCategory,
     getCategoryBySlug,
   };
 };

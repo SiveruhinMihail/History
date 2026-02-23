@@ -5,23 +5,23 @@ export default defineEventHandler(async (event) => {
   const body = await readBody(event);
   const { communityId, targetUserId } = body;
 
-  // Получаем текущего пользователя
+  // Получаем текущего пользователя из auth
   const user = await serverSupabaseUser(event);
   if (!user) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
 
-  // Получаем клиент с правами пользователя (не service_role)
+  // Клиент с правами текущего пользователя (для проверок)
   const supabase = await serverSupabaseClient(event);
 
   // Находим числовой id текущего пользователя в таблице user
-  const { data: currentUser } = await supabase
+  const { data: currentUser, error: userError } = await supabase
     .from("user")
     .select("id")
     .eq("auth_uid", user.id)
     .single();
 
-  if (!currentUser) {
+  if (userError || !currentUser) {
     throw createError({ statusCode: 404, message: "User not found" });
   }
 
@@ -37,26 +37,22 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 403, message: "Forbidden" });
   }
 
-  // Теперь выполняем действие через service_role клиент (обходит RLS)
-  // Для этого нам нужен клиент с сервисной ролью.
-  // Его можно получить через useSupabaseClient с service_role ключом.
-  // В Nuxt модуле Supabase это делается через $supabase.client.serviceRole или отдельную конфигурацию.
-  // Проще всего создать отдельный экземпляр клиента с service_role ключом из runtimeConfig.
-
+  // Создаем клиент с service_role (обходит RLS)
   const runtimeConfig = useRuntimeConfig();
   const serviceSupabase = createClient(
     runtimeConfig.public.supabaseUrl,
-    runtimeConfig.serviceKey, // добавьте NUXT_SERVICE_KEY в .env
+    runtimeConfig.serviceKey, // должен быть определён в nuxt.config и .env
   );
 
-  const { error } = await serviceSupabase
+  // Выполняем действие – одобряем заявку (меняем роль на member)
+  const { error: updateError } = await serviceSupabase
     .from("subscribers")
     .update({ role: "member" })
     .eq("communities_id", communityId)
     .eq("user_id", targetUserId);
 
-  if (error) {
-    throw createError({ statusCode: 500, message: error.message });
+  if (updateError) {
+    throw createError({ statusCode: 500, message: updateError.message });
   }
 
   return { success: true };

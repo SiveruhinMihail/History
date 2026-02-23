@@ -1,3 +1,59 @@
+<script setup lang="ts">
+import {
+  HeartIcon,
+  BookmarkIcon,
+  ChatBubbleLeftIcon,
+  PhotoIcon,
+} from "@heroicons/vue/24/outline";
+
+const props = defineProps<{
+  post: any;
+}>();
+
+const emit = defineEmits<{
+  (e: "like" | "favorite"): void;
+}>();
+
+const currentImageIndex = ref(0);
+const currentImage = computed(() => {
+  return props.post.post_images?.[currentImageIndex.value]?.url || null;
+});
+
+const likesCount = computed(() => props.post.likes?.[0]?.count || 0);
+const commentsCount = computed(
+  () => props.post.comments_count?.[0]?.count || 0,
+);
+
+function prevImage(event: MouseEvent) {
+  event.preventDefault();
+  if (props.post.post_images && currentImageIndex.value > 0) {
+    currentImageIndex.value--;
+  }
+}
+
+function nextImage(event: MouseEvent) {
+  event.preventDefault();
+  if (
+    props.post.post_images &&
+    currentImageIndex.value < props.post.post_images.length - 1
+  ) {
+    currentImageIndex.value++;
+  }
+}
+
+function handleImageError(e: Event) {
+  const target = e.target as HTMLImageElement;
+  target.src = "https://via.placeholder.com/300x200?text=No+Image";
+}
+
+const formatDate = (date: string) => {
+  return new Date(date).toLocaleDateString("ru-RU", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+};
+</script>
 <template>
   <div
     class="flex-shrink-0 w-[max(250px,30vw)] sm:w-[280px] h-[360px] bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200 flex flex-col overflow-hidden border border-gray-100"
@@ -72,13 +128,13 @@
             ]"
             class="w-4 h-4"
           />
-          <span class="text-xs">{{ likesCount }}</span>
+          <span class="text-xs">{{ post.likes?.[0]?.count || 0 }}</span>
         </button>
 
         <!-- Комментарии -->
         <div class="flex items-center gap-1 text-gray-400">
           <ChatBubbleLeftIcon class="w-4 h-4" />
-          <span class="text-xs">{{ commentsCount }}</span>
+          <span class="text-xs">{{ post.comments?.[0]?.count || 0 }}</span>
         </div>
       </div>
 
@@ -109,61 +165,3 @@
     </div>
   </div>
 </template>
-
-<script setup lang="ts">
-import {
-  HeartIcon,
-  BookmarkIcon,
-  ChatBubbleLeftIcon,
-  PhotoIcon,
-} from "@heroicons/vue/24/outline";
-
-const props = defineProps<{
-  post: any;
-}>();
-
-const emit = defineEmits<{
-  (e: "like"): void;
-  (e: "favorite"): void;
-}>();
-
-const currentImageIndex = ref(0);
-const currentImage = computed(() => {
-  return props.post.post_images?.[currentImageIndex.value]?.url || null;
-});
-
-const likesCount = computed(() => props.post.likes?.[0]?.count || 0);
-const commentsCount = computed(
-  () => props.post.comments_count?.[0]?.count || 0,
-);
-
-function prevImage(event: MouseEvent) {
-  event.preventDefault();
-  if (props.post.post_images && currentImageIndex.value > 0) {
-    currentImageIndex.value--;
-  }
-}
-
-function nextImage(event: MouseEvent) {
-  event.preventDefault();
-  if (
-    props.post.post_images &&
-    currentImageIndex.value < props.post.post_images.length - 1
-  ) {
-    currentImageIndex.value++;
-  }
-}
-
-function handleImageError(e: Event) {
-  const target = e.target as HTMLImageElement;
-  target.src = "https://via.placeholder.com/300x200?text=No+Image";
-}
-
-const formatDate = (date: string) => {
-  return new Date(date).toLocaleDateString("ru-RU", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  });
-};
-</script>

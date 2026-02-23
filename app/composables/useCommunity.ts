@@ -44,11 +44,14 @@ export const useCommunity = () => {
 
   const join = async (communityId: number) => {
     if (!userId.value) throw new Error("Not authenticated");
-    const { error } = await supabase.from("subscribers").insert({
-      communities_id: communityId,
-      user_id: userId.value,
-      role: "pending",
-    });
+    const { error } = await supabase.from("subscribers").upsert(
+      {
+        communities_id: communityId,
+        user_id: userId.value,
+        role: "pending",
+      },
+      { onConflict: "user_id, communities_id", ignoreDuplicates: false },
+    );
     if (error) throw error;
   };
 

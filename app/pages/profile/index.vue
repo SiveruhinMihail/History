@@ -1,75 +1,4 @@
 <!-- pages/index.vue -->
-<template>
-  <div class="container mx-auto px-4 py-6">
-    <!-- Поисковая строка -->
-    <div class="mb-6 relative">
-      <input
-        v-model="searchQuery"
-        type="text"
-        placeholder="Поиск по категориям и постам..."
-        class="w-full p-2 border rounded"
-        @input="handleSearch"
-      />
-      <div
-        v-if="searchResults.length"
-        class="absolute mt-2 bg-white shadow rounded p-2 z-10 w-full max-w-md"
-      >
-        <div v-for="item in searchResults" :key="item.id">
-          <NuxtLink
-            :to="
-              item.type === 'category'
-                ? `/categories/${item.slug}`
-                : `/post/${item.id}`
-            "
-            class="block p-1 hover:bg-gray-100"
-          >
-            {{ item.title }} ({{
-              item.type === "category" ? "Категория" : "Пост"
-            }})
-          </NuxtLink>
-        </div>
-      </div>
-    </div>
-
-    <!-- Состояние загрузки -->
-    <div v-if="loading" class="space-y-4">
-      <div v-for="i in 3" :key="i" class="animate-pulse">
-        <div class="h-8 w-48 bg-gray-200 rounded mb-3"></div>
-        <div class="flex gap-4 overflow-hidden">
-          <div
-            v-for="j in 4"
-            :key="j"
-            class="w-[max(250px,30vw)] sm:w-[300px] h-40 bg-gray-200 rounded"
-          ></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Готовая лента -->
-    <div v-else>
-      <!-- Рекомендации -->
-      <CategoryRow
-        :category="{ name: 'Рекомендации', slug: 'recommended' }"
-        :posts="recommendedPosts"
-        class="mb-8"
-        @like="handleLike"
-        @favorite="handleFavorite"
-      />
-
-      <!-- Категории -->
-      <CategoryRow
-        v-for="item in feed"
-        :key="item.category.id"
-        :category="item.category"
-        :posts="item.posts"
-        class="mb-8"
-        @like="handleLike"
-        @favorite="handleFavorite"
-      />
-    </div>
-  </div>
-</template>
-
 <script setup lang="ts">
 const supabase = useSupabaseClient();
 const { getHomeFeed, getRecommendedPosts } = usePosts();
@@ -235,3 +164,74 @@ onMounted(async () => {
   }
 });
 </script>
+
+<template>
+  <div class="container mx-auto px-4 py-6">
+    <!-- Поисковая строка -->
+    <div class="mb-6 relative">
+      <input
+        v-model="searchQuery"
+        type="text"
+        placeholder="Поиск по категориям и постам..."
+        class="w-full p-2 border rounded"
+        @input="handleSearch"
+      />
+      <div
+        v-if="searchResults.length"
+        class="absolute mt-2 bg-white shadow rounded p-2 z-10 w-full max-w-md"
+      >
+        <div v-for="item in searchResults" :key="item.id">
+          <NuxtLink
+            :to="
+              item.type === 'category'
+                ? `/categories/${item.slug}`
+                : `/post/${item.id}`
+            "
+            class="block p-1 hover:bg-gray-100"
+          >
+            {{ item.title }} ({{
+              item.type === "category" ? "Категория" : "Пост"
+            }})
+          </NuxtLink>
+        </div>
+      </div>
+    </div>
+
+    <!-- Состояние загрузки -->
+    <div v-if="loading" class="space-y-4">
+      <div v-for="i in 3" :key="i" class="animate-pulse">
+        <div class="h-8 w-48 bg-gray-200 rounded mb-3"></div>
+        <div class="flex gap-4 overflow-hidden">
+          <div
+            v-for="j in 4"
+            :key="j"
+            class="w-[max(250px,30vw)] sm:w-[300px] h-40 bg-gray-200 rounded"
+          ></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Готовая лента -->
+    <div v-else>
+      <!-- Рекомендации -->
+      <CategoryRow
+        :category="{ name: 'Рекомендации', slug: 'recommended' }"
+        :posts="recommendedPosts"
+        class="mb-8"
+        @like="handleLike"
+        @favorite="handleFavorite"
+      />
+
+      <!-- Категории -->
+      <CategoryRow
+        v-for="item in feed"
+        :key="item.category.id"
+        :category="item.category"
+        :posts="item.posts"
+        class="mb-8"
+        @like="handleLike"
+        @favorite="handleFavorite"
+      />
+    </div>
+  </div>
+</template>

@@ -1,5 +1,5 @@
 // middleware/auth.global.ts
-export default defineNuxtRouteMiddleware(async (to, from) => {
+export default defineNuxtRouteMiddleware(async (to) => {
   const { loadProfile } = useAuth();
   const user = useSupabaseUser();
   await loadProfile();

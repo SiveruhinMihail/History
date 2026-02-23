@@ -3,6 +3,7 @@ definePageMeta({
   layout: "auth",
 });
 const { signIn } = useAuth();
+const supabase = useSupabaseClient();
 const submitted = ref(false);
 const formErrors = ref<{ general?: string }>({});
 
@@ -12,6 +13,25 @@ const submitHandler = async (data?: { email: string; password: string }) => {
   try {
     formErrors.value = {};
     await signIn(data.email, data.password);
+
+    // После входа проверяем, не забанен ли пользователь
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (user) {
+      const { data: userData, error: userError } = await supabase
+        .from("user")
+        .select("is_banned")
+        .eq("auth_uid", user.id)
+        .maybeSingle();
+
+      if (userError || userData?.is_banned) {
+        await supabase.auth.signOut();
+        formErrors.value.general = "Ваш аккаунт заблокирован. Вход невозможен.";
+        return;
+      }
+    }
+
     submitted.value = true;
     await navigateTo("/");
   } catch (error: any) {
@@ -33,9 +53,7 @@ const togglePasswordVisibility = (node: any) => {
 </script>
 
 <template>
-  <!-- Родительский контейнер на весь экран, flex для двух колонок -->
   <div class="flex h-screen w-screen">
-    <!-- Левая половина: изображение на всю высоту -->
     <div class="w-1/2 h-full overflow-hidden">
       <img
         src="https://phlyzwfqtpddvgrprngo.supabase.co/storage/v1/object/public/avatars/auth.png"
@@ -43,8 +61,6 @@ const togglePasswordVisibility = (node: any) => {
         class="w-full h-full object-cover"
       />
     </div>
-
-    <!-- Правая половина: центрированная форма -->
     <div class="w-1/2 h-full flex items-center justify-center p-8">
       <div class="w-full max-w-md">
         <FormKit
@@ -78,9 +94,7 @@ const togglePasswordVisibility = (node: any) => {
             name="password"
             label="Пароль"
             validation="required"
-            :validation-messages="{
-              required: 'Пожалуйста, введите пароль.',
-            }"
+            :validation-messages="{ required: 'Пожалуйста, введите пароль.' }"
             placeholder="Пароль"
             help="Введите пароль"
             label-class="text-lg"

@@ -7,7 +7,7 @@ const uploading = ref(false);
 const showCropper = ref(false);
 const selectedFile = ref<File | null>(null);
 const imageUrl = ref<string | null>(null);
-let cropper: Cropper | null = null; // используется глобальный тип
+let cropper: any = null; // используется глобальный тип
 
 const fileInput = ref<HTMLInputElement | null>(null);
 const imageElement = ref<HTMLImageElement | null>(null);
@@ -31,7 +31,7 @@ async function onFileSelected(event: Event) {
 
   if (window.Cropper && imageElement.value) {
     if (cropper) cropper.destroy();
-    cropper = new window.Cropper(imageElement.value, {
+    cropper = new (window as any).Cropper(imageElement.value, {
       aspectRatio: 1,
       viewMode: 1,
       dragMode: "move",

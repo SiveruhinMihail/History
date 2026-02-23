@@ -52,6 +52,7 @@ export default defineNuxtConfig({
       },
     },
   },
+  serverDir: "app/server",
 
   runtimeConfig: {
     serviceKey: process.env.NUXT_SERVICE_KEY,

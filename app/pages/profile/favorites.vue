@@ -1,30 +1,4 @@
 <!-- pages/profile/favorites.vue -->
-<template>
-  <div class="container mx-auto px-4 py-6">
-    <h1 class="text-3xl font-bold mb-6">Мои закладки</h1>
-
-    <div v-if="loading" class="text-center py-10">Загрузка...</div>
-    <div
-      v-else-if="favorites.length === 0"
-      class="text-center py-10 text-gray-500"
-    >
-      У вас пока нет избранных постов.
-    </div>
-    <div
-      v-else
-      class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
-    >
-      <PostCard
-        v-for="post in favorites"
-        :key="post.id"
-        :post="post"
-        @like="() => handleLike(post)"
-        @favorite="() => handleFavorite(post)"
-      />
-    </div>
-  </div>
-</template>
-
 <script setup lang="ts">
 const supabase = useSupabaseClient();
 const { userId, isAuthenticated } = useAuth();
@@ -121,3 +95,29 @@ onMounted(async () => {
   }
 });
 </script>
+
+<template>
+  <div class="container mx-auto px-4 py-6">
+    <h1 class="text-3xl font-bold mb-6">Мои закладки</h1>
+
+    <div v-if="loading" class="text-center py-10">Загрузка...</div>
+    <div
+      v-else-if="favorites.length === 0"
+      class="text-center py-10 text-gray-500"
+    >
+      У вас пока нет избранных постов.
+    </div>
+    <div
+      v-else
+      class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
+    >
+      <PostCard
+        v-for="post in favorites"
+        :key="post.id"
+        :post="post"
+        @like="() => handleLike(post)"
+        @favorite="() => handleFavorite(post)"
+      />
+    </div>
+  </div>
+</template>

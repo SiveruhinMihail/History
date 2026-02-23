@@ -1,9 +1,3 @@
-<template>
-  <div>
-    <canvas ref="chartCanvas"></canvas>
-  </div>
-</template>
-
 <script setup>
 import { ref, onMounted, watch } from "vue";
 import { Chart, registerables } from "chart.js";
@@ -36,7 +30,6 @@ const createChart = () => {
           data: props.data.comments,
           backgroundColor: "rgba(255, 206, 86, 0.5)",
         },
-        // можно добавить и другие наборы данных
       ],
     },
     options: {
@@ -49,3 +42,9 @@ const createChart = () => {
 watch([() => props.labels, () => props.data], createChart, { deep: true });
 onMounted(createChart);
 </script>
+
+<template>
+  <div>
+    <canvas ref="chartCanvas"></canvas>
+  </div>
+</template>

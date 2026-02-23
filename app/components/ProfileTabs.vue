@@ -1,48 +1,26 @@
+<script setup>
+defineProps(["activeTab"]);
+defineEmits(["update:activeTab"]);
+
+const tabs = [
+  { value: "about", label: "О себе" },
+  { value: "posts", label: "Посты" },
+  { value: "favorites", label: "Избранное" },
+  { value: "activity", label: "Активность" },
+];
+</script>
 <template>
-  <div class="border-b">
-    <nav class="flex gap-6">
-      <button
-        @click="$emit('update:activeTab', 'about')"
-        :class="[
-          'py-2 border-b-2 font-medium',
-          activeTab === 'about'
-            ? 'border-blue-600 text-blue-600'
-            : 'border-transparent text-gray-500 hover:text-gray-700',
-        ]"
-      >
-        О себе
-      </button>
-      <button
-        @click="$emit('update:activeTab', 'favorites')"
-        :class="[
-          'py-2 border-b-2 font-medium',
-          activeTab === 'favorites'
-            ? 'border-blue-600 text-blue-600'
-            : 'border-transparent text-gray-500 hover:text-gray-700',
-        ]"
-      >
-        Избранное
-      </button>
-      <button
-        @click="$emit('update:activeTab', 'activity')"
-        :class="[
-          'py-2 border-b-2 font-medium',
-          activeTab === 'activity'
-            ? 'border-blue-600 text-blue-600'
-            : 'border-transparent text-gray-500 hover:text-gray-700',
-        ]"
-      >
-        Активность
-      </button>
-    </nav>
+  <div class="border-b mb-4">
+    <button
+      v-for="tab in tabs"
+      :key="tab.value"
+      @click="$emit('update:activeTab', tab.value)"
+      :class="[
+        'px-4 py-2',
+        activeTab === tab.value ? 'border-b-2 border-blue-600' : '',
+      ]"
+    >
+      {{ tab.label }}
+    </button>
   </div>
 </template>
-
-<script setup lang="ts">
-defineProps<{
-  activeTab: string;
-}>();
-defineEmits<{
-  (e: "update:activeTab", tab: string): void;
-}>();
-</script>

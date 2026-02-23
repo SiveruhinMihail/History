@@ -1,8 +1,6 @@
 <!-- components/Header.vue -->
 <script setup lang="ts">
 import type { Database } from "~/types/supabase";
-type UserRow = Database["public"]["Tables"]["user"]["Row"];
-const { isAuthenticated, signOut } = useAuth();
 import {
   Bars3Icon,
   XMarkIcon,
@@ -12,7 +10,10 @@ import {
   FolderIcon,
   ArrowRightStartOnRectangleIcon,
   PencilIcon,
+  FlagIcon,
 } from "@heroicons/vue/24/outline";
+type UserRow = Database["public"]["Tables"]["user"]["Row"];
+const { isAuthenticated, signOut } = useAuth();
 
 const props = defineProps<{
   profile: UserRow | null;
@@ -192,8 +193,8 @@ const dropdownUser = computed(() => ({
                   :email="dropdownUser.email"
                   :avatar="dropdownUser.avatar"
                   :role="dropdownUser.role"
-                  @logout="handleLogout"
                   class="origin-top-right dropdown-menu"
+                  @logout="handleLogout"
                 />
               </transition>
             </div>
@@ -286,6 +287,20 @@ const dropdownUser = computed(() => ({
           >
             Сообщества
           </NuxtLink>
+          <NuxtLink
+            to="/create"
+            class="block py-2 text-base text-gray-700 hover:text-gray-900 hover:bg-gray-50 rounded-md px-2"
+            @click="closeMobileMenu"
+          >
+            Создать пост
+          </NuxtLink>
+          <NuxtLink
+            to="/profile/favorites"
+            class="block py-2 text-base text-gray-700 hover:text-gray-900 hover:bg-gray-50 rounded-md px-2"
+            @click="closeMobileMenu"
+          >
+            Избранное
+          </NuxtLink>
 
           <!-- Дополнительные пункты (профиль, редактирование, модерация, выход) -->
           <div class="border-t border-gray-100 pt-3 space-y-1">
@@ -305,15 +320,30 @@ const dropdownUser = computed(() => ({
               <PencilIcon class="w-5 h-5 mr-3 text-gray-400" />
               Редактировать профиль
             </NuxtLink>
-            <NuxtLink
-              v-if="dropdownUser.role === 'admin'"
-              :to="`/moder/${dropdownUser.auth_uid}`"
-              class="flex items-center py-2 px-2 text-base text-gray-700 hover:text-gray-900 hover:bg-gray-50 rounded-md"
-              @click="closeMobileMenu"
+            <!-- Модерация (для модератора и админа) -->
+            <template
+              v-if="
+                dropdownUser.role === 'admin' ||
+                dropdownUser.role === 'moderator'
+              "
             >
-              <BriefcaseIcon class="w-5 h-5 mr-3 text-gray-400" />
-              Модерация
-            </NuxtLink>
+              <NuxtLink
+                to="/moderate/posts"
+                class="flex items-center py-2 px-2 text-base text-gray-700 hover:text-gray-900 hover:bg-gray-50 rounded-md"
+                @click="closeMobileMenu"
+              >
+                <BriefcaseIcon class="w-5 h-5 mr-3 text-gray-400" />
+                Модерация постов
+              </NuxtLink>
+              <NuxtLink
+                to="/moderate/reports"
+                class="flex items-center py-2 px-2 text-base text-gray-700 hover:text-gray-900 hover:bg-gray-50 rounded-md"
+                @click="closeMobileMenu"
+              >
+                <FlagIcon class="w-5 h-5 mr-3 text-gray-400" />
+                Жалобы
+              </NuxtLink>
+            </template>
             <NuxtLink
               v-if="dropdownUser.role === 'admin'"
               to="/register"
@@ -323,14 +353,7 @@ const dropdownUser = computed(() => ({
               <PlusIcon class="w-5 h-5 mr-3 text-gray-400" />
               Создать модератора
             </NuxtLink>
-            <NuxtLink
-              :to="`/my_routes/${dropdownUser.auth_uid}`"
-              class="flex items-center py-2 px-2 text-base text-gray-700 hover:text-gray-900 hover:bg-gray-50 rounded-md"
-              @click="closeMobileMenu"
-            >
-              <FolderIcon class="w-5 h-5 mr-3 text-gray-400" />
-              Мои посты
-            </NuxtLink>
+
             <button
               class="flex w-full items-center py-2 px-2 text-base text-gray-700 hover:text-gray-900 hover:bg-gray-50 rounded-md"
               @click="handleLogout"

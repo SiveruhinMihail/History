@@ -1,3 +1,19 @@
+<script setup lang="ts">
+const supabase = useSupabaseClient();
+const communities = ref<any[]>([]);
+const loading = ref(true);
+
+onMounted(async () => {
+  const { data, error } = await supabase
+    .from("community")
+    .select("*")
+    .order("rating", { ascending: false });
+  if (error) console.error(error);
+  else communities.value = data || [];
+  loading.value = false;
+});
+</script>
+
 <template>
   <div class="container mx-auto px-4 py-6">
     <div class="flex justify-between items-center mb-6">
@@ -43,19 +59,3 @@
     </div>
   </div>
 </template>
-
-<script setup lang="ts">
-const supabase = useSupabaseClient();
-const communities = ref<any[]>([]);
-const loading = ref(true);
-
-onMounted(async () => {
-  const { data, error } = await supabase
-    .from("community")
-    .select("*")
-    .order("rating", { ascending: false });
-  if (error) console.error(error);
-  else communities.value = data || [];
-  loading.value = false;
-});
-</script>

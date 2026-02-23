@@ -7,7 +7,6 @@ const feed = ref<any[]>([]);
 const recommendedPosts = ref<any[]>([]);
 const loading = ref(true);
 
-// Обогащение постов данными: лайки, закладки
 async function enrichPostsWithUserData(posts: any[]) {
   if (!isAuthenticated.value || !userId.value || !posts.length) return posts;
 
@@ -35,7 +34,32 @@ async function enrichPostsWithUserData(posts: any[]) {
     ...post,
     isLiked: likedPostIds.has(post.id),
     isFavorited: favoritedPostIds.has(post.id),
+    rating: post.rating || 0,
+    // поле likes уже есть в данных из запроса
   }));
+}
+
+async function loadFeed() {
+  loading.value = true;
+  try {
+    const [recommended, categoriesFeed] = await Promise.all([
+      getRecommendedPosts(10), // без sortBy
+      getHomeFeed(12), // без sortBy
+    ]);
+
+    recommendedPosts.value = await enrichPostsWithUserData(recommended || []);
+    const enrichedFeed = await Promise.all(
+      categoriesFeed.map(async (item) => ({
+        ...item,
+        posts: item.posts ? await enrichPostsWithUserData(item.posts) : [],
+      })),
+    );
+    feed.value = enrichedFeed;
+  } catch (e) {
+    console.error("Ошибка загрузки ленты:", e);
+  } finally {
+    loading.value = false;
+  }
 }
 
 function updatePost(updatedPost: any) {
@@ -44,7 +68,6 @@ function updatePost(updatedPost: any) {
   );
   if (recIndex !== -1) {
     recommendedPosts.value[recIndex] = { ...updatedPost };
-    return;
   }
   for (const category of feed.value) {
     const postIndex = category.posts.findIndex(
@@ -52,12 +75,10 @@ function updatePost(updatedPost: any) {
     );
     if (postIndex !== -1) {
       category.posts[postIndex] = { ...updatedPost };
-      break;
     }
   }
 }
 
-// Обработка лайка
 async function handleLike(post: any) {
   if (!isAuthenticated.value || !userId.value) return;
   try {
@@ -67,18 +88,23 @@ async function handleLike(post: any) {
         .delete()
         .eq("post_id", post.id)
         .eq("user_id", userId.value);
+      // Уменьшаем счётчик в likes
       if (post.likes && post.likes[0]) {
         post.likes[0].count -= 1;
       }
+      // Уменьшаем rating, если используется
+      if (post.rating !== undefined) post.rating -= 1;
     } else {
       await supabase
         .from("like_to_post")
         .insert({ post_id: post.id, user_id: userId.value });
+      // Увеличиваем счётчик
       if (post.likes && post.likes[0]) {
         post.likes[0].count += 1;
       } else {
         post.likes = [{ count: 1 }];
       }
+      if (post.rating !== undefined) post.rating += 1;
     }
     post.isLiked = !post.isLiked;
     updatePost(post);
@@ -87,7 +113,6 @@ async function handleLike(post: any) {
   }
 }
 
-// Обработка закладки
 async function handleFavorite(post: any) {
   if (!isAuthenticated.value || !userId.value) return;
   try {
@@ -108,28 +133,6 @@ async function handleFavorite(post: any) {
     console.error("Error toggling favorite:", e);
   }
 }
-
-onMounted(async () => {
-  try {
-    const [recommended, categoriesFeed] = await Promise.all([
-      getRecommendedPosts(10),
-      getHomeFeed(12),
-    ]);
-
-    recommendedPosts.value = await enrichPostsWithUserData(recommended || []);
-    const enrichedFeed = await Promise.all(
-      categoriesFeed.map(async (item) => ({
-        ...item,
-        posts: item.posts ? await enrichPostsWithUserData(item.posts) : [],
-      })),
-    );
-    feed.value = enrichedFeed;
-  } catch (e) {
-    console.error("Ошибка загрузки ленты:", e);
-  } finally {
-    loading.value = false;
-  }
-});
 
 function debounce<T extends (...args: any[]) => any>(fn: T, delay: number) {
   let timer: ReturnType<typeof setTimeout>;
@@ -171,6 +174,8 @@ const debouncedSearch = debounce(async (query: string) => {
 function handleSearch() {
   debouncedSearch(searchQuery.value);
 }
+
+onMounted(loadFeed);
 </script>
 
 <template>
@@ -200,6 +205,7 @@ function handleSearch() {
         </div>
       </div>
     </div>
+
     <div v-if="loading" class="space-y-4">
       <div v-for="i in 3" :key="i" class="animate-pulse">
         <div class="h-8 w-48 bg-gray-200 rounded mb-3"></div>
@@ -214,6 +220,7 @@ function handleSearch() {
     </div>
     <div v-else>
       <CategoryRow
+        v-if="recommendedPosts.length > 0"
         :category="{ name: 'Рекомендации', slug: 'recommended' }"
         :posts="recommendedPosts"
         class="mb-8"

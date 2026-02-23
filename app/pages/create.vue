@@ -1,85 +1,3 @@
-<template>
-  <div class="container mx-auto px-4 py-6 max-w-2xl">
-    <h1 class="text-3xl font-bold mb-6">Создать новый пост</h1>
-
-    <FormKit
-      type="form"
-      :actions="false"
-      @submit="handleSubmit"
-      #default="{ value }"
-    >
-      <FormKit
-        type="text"
-        name="title"
-        label="Заголовок"
-        validation="required|length:3,255"
-        placeholder="Введите заголовок поста"
-      />
-
-      <FormKit
-        type="textarea"
-        name="description"
-        label="Описание"
-        validation="required|length:10,1000"
-        placeholder="О чём ваш пост?"
-        rows="5"
-      />
-
-      <!-- Множественная загрузка изображений -->
-      <FormKit
-        type="file"
-        name="images"
-        label="Изображения"
-        accept="image/*"
-        multiple
-        help="Вы можете выбрать несколько изображений"
-        @change="handleImagesChange"
-      />
-
-      <!-- Предпросмотр выбранных изображений -->
-      <div v-if="imagePreviews.length" class="mt-2 mb-4 flex flex-wrap gap-2">
-        <div
-          v-for="(preview, index) in imagePreviews"
-          :key="index"
-          class="relative"
-        >
-          <img
-            :src="preview"
-            class="h-20 w-20 object-cover rounded"
-            alt="Preview"
-          />
-          <button
-            type="button"
-            @click="removeImage(index)"
-            class="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
-          >
-            ×
-          </button>
-        </div>
-      </div>
-
-      <FormKit
-        type="select"
-        name="categories"
-        label="Категории"
-        :options="categoryOptions"
-        multiple
-        validation="required|min:1"
-        help="Выберите одну или несколько категорий"
-      />
-
-      <div class="flex gap-4 justify-end mt-4">
-        <FormKit type="button" @click="cancel" :disabled="submitting">
-          Отмена
-        </FormKit>
-        <FormKit type="submit" :disabled="submitting">
-          {{ submitting ? "Сохранение..." : "Создать пост" }}
-        </FormKit>
-      </div>
-    </FormKit>
-  </div>
-</template>
-
 <script setup lang="ts">
 import type { Database } from "~/types/supabase";
 
@@ -217,3 +135,85 @@ onUnmounted(() => {
   imagePreviews.value.forEach((url) => URL.revokeObjectURL(url));
 });
 </script>
+
+<template>
+  <div class="container mx-auto px-4 py-6 max-w-2xl">
+    <h1 class="text-3xl font-bold mb-6">Создать новый пост</h1>
+    <!-- eslint-disable-line vue/no-unused-vars -->
+    <FormKit
+      v-slot="{ value }"
+      type="form"
+      :actions="false"
+      @submit="handleSubmit"
+    >
+      <FormKit
+        type="text"
+        name="title"
+        label="Заголовок"
+        validation="required|length:3,255"
+        placeholder="Введите заголовок поста"
+      />
+
+      <FormKit
+        type="textarea"
+        name="description"
+        label="Описание"
+        validation="required|length:10,1000"
+        placeholder="О чём ваш пост?"
+        rows="5"
+      />
+
+      <!-- Множественная загрузка изображений -->
+      <FormKit
+        type="file"
+        name="images"
+        label="Изображения"
+        accept="image/*"
+        multiple
+        help="Вы можете выбрать несколько изображений"
+        @change="handleImagesChange"
+      />
+
+      <!-- Предпросмотр выбранных изображений -->
+      <div v-if="imagePreviews.length" class="mt-2 mb-4 flex flex-wrap gap-2">
+        <div
+          v-for="(preview, index) in imagePreviews"
+          :key="index"
+          class="relative"
+        >
+          <img
+            :src="preview"
+            class="h-20 w-20 object-cover rounded"
+            alt="Preview"
+          />
+          <button
+            type="button"
+            class="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
+            @click="removeImage(index)"
+          >
+            ×
+          </button>
+        </div>
+      </div>
+
+      <FormKit
+        type="select"
+        name="categories"
+        label="Категории"
+        :options="categoryOptions"
+        multiple
+        validation="required|min:1"
+        help="Выберите одну или несколько категорий"
+      />
+
+      <div class="flex gap-4 justify-end mt-4">
+        <FormKit type="button" :disabled="submitting" @click="cancel">
+          Отмена
+        </FormKit>
+        <FormKit type="submit" :disabled="submitting">
+          {{ submitting ? "Сохранение..." : "Создать пост" }}
+        </FormKit>
+      </div>
+    </FormKit>
+  </div>
+</template>
