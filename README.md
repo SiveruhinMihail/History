@@ -227,4 +227,3 @@ MIT © [Ваше имя]
 **Автор:** [Lum1nous]  
 **Дата:** 24.02.2026  
 **Репозиторий:** [https://github.com/SiveruhinMihail/History](https://github.com/SiveruhinMihail/History)
-```
