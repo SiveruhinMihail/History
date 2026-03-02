@@ -9,15 +9,16 @@ export default defineNuxtConfig({
     "@nuxtjs/color-mode",
     "@vueuse/nuxt",
   ],
+
   nitro: {
-    prerender: {
-      routes: ["/", "/categories", "/communities"],
-    },
     preset: "github_pages",
+    prerender: {
+      routes: ["/", "/404.html", "/200.html", "/categories", "/communities"],
+    },
   },
+
   routeRules: {
-    "/": { prerender: false }, // главную оставляем
-    "/categories": { ssr: false }, // эти страницы будут SPA
+    "/categories": { ssr: false },
     "/communities": { ssr: false },
   },
 
@@ -32,7 +33,7 @@ export default defineNuxtConfig({
         },
         {
           rel: "preload",
-          href: "/fonts/FiraMono-Regular.ttf",
+          href: "/Klio/fonts/FiraMono-Regular.ttf", // добавлен /Klio/
           as: "font",
           type: "font/ttf",
           crossorigin: "",
