@@ -16,7 +16,7 @@ export default defineNuxtConfig({
     preset: "github_pages",
   },
   routeRules: {
-    "/": { prerender: true }, // главную оставляем
+    "/": { prerender: false }, // главную оставляем
     "/categories": { ssr: false }, // эти страницы будут SPA
     "/communities": { ssr: false },
   },
