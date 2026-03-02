@@ -13,15 +13,17 @@ export default defineNuxtConfig({
     prerender: {
       routes: ["/", "/categories", "/communities"],
     },
-    preset: 'github_pages',
+    preset: "github_pages",
   },
   routeRules: {
-    '/**': { prerender: true }
+    "/": { prerender: true }, // главную оставляем
+    "/categories": { ssr: false }, // эти страницы будут SPA
+    "/communities": { ssr: false },
   },
 
   app: {
-    baseURL: '/Klio/',
-    buildAssetsDir: '/nuxt_assets/',
+    baseURL: "/Klio/",
+    buildAssetsDir: "/nuxt_assets/",
     head: {
       link: [
         {
