@@ -71,7 +71,6 @@ export default defineNuxtConfig({
       callback: "/confirm",
       exclude: ["/"],
     },
-
     clientOptions: {
       auth: {
         flowType: "pkce",
