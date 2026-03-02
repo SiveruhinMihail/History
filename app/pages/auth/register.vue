@@ -1,21 +1,46 @@
 <script setup lang="ts">
 import type { Database } from "~/types/supabase";
 
+definePageMeta({
+  layout: "auth",
+});
+
 const submitted = ref(false);
 const formErrors = ref<{ general?: string }>({});
 const supabase = useSupabaseClient<Database>();
 
+const inputClass =
+  "bg-white dark:bg-gray-800 border border-primary/20 dark:border-gray-700 text-gray-900 dark:text-gray-100 rounded-lg px-4 py-2 w-full focus:border-accent focus:ring-1 focus:ring-accent";
+const labelClass =
+  "block text-gray-700 dark:text-gray-300 text-sm font-medium mb-1";
+const helpClass = "text-xs text-gray-500 dark:text-gray-400 mt-1";
+const submitButtonClass =
+  "w-full px-4 py-2 bg-accent hover:bg-accent-dark dark:bg-accent-600 dark:hover:bg-accent-700 text-white rounded-lg transition disabled:opacity-50";
+
 const submitHandler = async (data?: {
   name: string;
   email: string;
+  phone: string;
   password: string;
   password_confirm: string;
 }) => {
-  if (!data?.email || !data?.password || !data?.name) return;
+  if (!data?.email || !data?.password || !data?.name || !data?.phone) return;
 
   try {
     formErrors.value = {};
 
+    // 1. Проверка уникальности номера телефона
+    const { data: existingPhone } = await supabase
+      .from("user")
+      .select("id")
+      .eq("phone", data.phone)
+      .maybeSingle();
+    if (existingPhone) {
+      formErrors.value.general = "Этот номер телефона уже зарегистрирован";
+      return;
+    }
+
+    // 2. Регистрация в Supabase Auth
     const { data: authData, error: signUpError } = await supabase.auth.signUp({
       email: data.email,
       password: data.password,
@@ -28,7 +53,6 @@ const submitHandler = async (data?: {
 
     if (signUpError) {
       console.error("Sign up error:", signUpError);
-
       if (signUpError.message.includes("User already registered")) {
         formErrors.value.general = "Пользователь с таким email уже существует";
       } else {
@@ -42,30 +66,30 @@ const submitHandler = async (data?: {
       return;
     }
 
-    // 2. Создаем запись в таблице user
+    // 3. Создание профиля в таблице user
     const { error: profileError } = await supabase.from("user").insert({
-      auth_uid: authData.user.id, // ← UUID из аутентификации
+      auth_uid: authData.user.id,
       username: data.name.toLowerCase().replace(/\s+/g, "_").substring(0, 50),
-      use: data.name.substring(0, 100), // ← твое поле "use"
+      use: data.name.substring(0, 100),
       email: data.email,
+      phone: data.phone,
       status: "active",
       rating: 0,
       created_at: new Date().toISOString(),
-    } as any); // ← временно используем any, пока TypeScript не поймет типы
+    } as any);
 
     if (profileError) {
       console.error("Profile creation error:", profileError);
-      throw profileError;
+      formErrors.value.general = "Ошибка создания профиля. Попробуйте позже.";
+      return;
     }
 
     submitted.value = true;
 
-    // Если email требует подтверждения
     if (!authData.session) {
       formErrors.value.general =
         "Пожалуйста, подтвердите ваш email. Мы отправили вам письмо.";
     } else {
-      // Если email подтвержден автоматически, переходим на главную
       await navigateTo("/");
     }
   } catch (error: any) {
@@ -81,57 +105,75 @@ const togglePasswordVisibility = (node: any) => {
 </script>
 
 <template>
-  <div class="flex items-center justify-center h-screen w-screen">
-    <div style="width: 50vw">
+  <div class="flex h-screen w-screen">
+    <div class="w-1/2 h-full overflow-hidden hidden lg:block">
       <img
-        src="/favicon.ico"
-        class="object-cover place-self-center"
-        style="height: 2vw"
+        src="https://phlyzwfqtpddvgrprngo.supabase.co/storage/v1/object/public/avatars/auth.png"
+        alt="Registration background"
+        class="w-full h-full object-cover"
+        loading="lazy"
       />
     </div>
-    <div class="flex-grow ml-20">
-      <FormKit
-        id="registration-form"
-        type="form"
-        :form-class="submitted ? 'hide' : 'show'"
-        submit-label="Зарегистрироваться"
-        :actions="false"
-        incomplete-message="Введите данные"
-        @submit="submitHandler"
-      >
-        <h1 class="font-bold" style="font-size: 3.2vw; margin-bottom: 2vw">
-          Регистрация!
-        </h1>
+    <div
+      class="w-full lg:w-1/2 h-full flex items-center justify-center p-8 bg-gray-50 dark:bg-gray-900"
+    >
+      <div class="w-full max-w-md">
+        <FormKit
+          id="registration-form"
+          type="form"
+          :form-class="submitted ? 'hide' : 'show'"
+          submit-label="Зарегистрироваться"
+          :actions="false"
+          incomplete-message="Введите данные"
+          @submit="submitHandler"
+        >
+          <h1 class="font-bold text-4xl mb-8 text-gray-900 dark:text-white">
+            Регистрация!
+          </h1>
 
-        <div class="mb-5">
           <FormKit
             type="text"
             name="name"
             label="Имя"
             placeholder="Ваше имя"
             validation="required"
-            label-class="text-lg"
-            input-class="text-lg py-2 px-4 w-full"
+            :input-class="inputClass"
+            :label-class="labelClass"
+            :help-class="helpClass"
             :validation-messages="{ required: 'Пожалуйста, введите ваше имя.' }"
           />
-        </div>
 
-        <FormKit
-          type="email"
-          name="email"
-          label="Email"
-          placeholder="user@example.com"
-          help="Введите вашу почту"
-          validation="required|email"
-          label-class="text-lg"
-          input-class="text-lg py-2 px-4 w-full"
-          :validation-messages="{
-            required: 'Пожалуйста, введите ваш email.',
-            email: 'Пожалуйста, введите корректный email адрес.',
-          }"
-        />
+          <FormKit
+            type="email"
+            name="email"
+            label="Email"
+            placeholder="user@example.com"
+            help="Введите вашу почту"
+            validation="required|email"
+            :input-class="inputClass"
+            :label-class="labelClass"
+            :help-class="helpClass"
+            :validation-messages="{
+              required: 'Пожалуйста, введите ваш email.',
+              email: 'Пожалуйста, введите корректный email адрес.',
+            }"
+          />
 
-        <div class="double">
+          <FormKit
+            type="tel"
+            name="phone"
+            label="Телефон"
+            placeholder="+7 (999) 123-45-67"
+            validation="required|matches:/^[0-9+() -]+$/"
+            :validation-messages="{
+              required: 'Пожалуйста, введите номер телефона.',
+              matches: 'Некорректный формат номера.',
+            }"
+            :input-class="inputClass"
+            :label-class="labelClass"
+            :help-class="helpClass"
+          />
+
           <FormKit
             type="password"
             name="password"
@@ -143,8 +185,9 @@ const togglePasswordVisibility = (node: any) => {
             }"
             placeholder="Пароль"
             help="Введите пароль"
-            label-class="text-lg"
-            input-class="text-lg py-2 px-4 w-full"
+            :input-class="inputClass"
+            :label-class="labelClass"
+            :help-class="helpClass"
             suffix-icon="eyeClosed"
             @suffix-icon-click="togglePasswordVisibility"
           />
@@ -160,28 +203,37 @@ const togglePasswordVisibility = (node: any) => {
               confirm: 'Пароли не совпадают.',
             }"
             help="Подтвердите пароль"
-            label-class="text-lg"
-            input-class="text-lg py-2 px-4 w-full"
+            :input-class="inputClass"
+            :label-class="labelClass"
+            :help-class="helpClass"
             suffix-icon="eyeClosed"
             @suffix-icon-click="togglePasswordVisibility"
           />
+
+          <FormKit type="submit" :input-class="submitButtonClass" class="mt-5"
+            >Продолжить ></FormKit
+          >
+        </FormKit>
+
+        <div
+          v-if="formErrors.general"
+          class="text-red-500 dark:text-red-400 mt-4"
+        >
+          {{ formErrors.general }}
         </div>
 
-        <div class="mt-5 text-left">
-          <FormKit type="submit">Продолжить ></FormKit>
+        <NuxtLink
+          to="/auth/login"
+          class="block mt-4 text-sm text-primary hover:underline dark:text-accent-400"
+        >
+          Уже есть аккаунт
+        </NuxtLink>
+
+        <div v-if="submitted && !formErrors.general" class="mt-4">
+          <h2 class="text-xl text-green-500 dark:text-green-400">
+            Регистрация прошла успешно!
+          </h2>
         </div>
-      </FormKit>
-
-      <div v-if="formErrors.general" class="text-red-500 mb-4">
-        {{ formErrors.general }}
-      </div>
-
-      <NuxtLink :to="{ path: '/auth/login' }" class="block mt-4">
-        <div style="font-size: 1vw">Уже есть аккаунт</div>
-      </NuxtLink>
-
-      <div v-if="submitted && !formErrors.general" class="mt-4">
-        <h2 class="text-xl text-green-500">Регистрация прошла успешно!</h2>
       </div>
     </div>
   </div>

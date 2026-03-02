@@ -1,7 +1,8 @@
 // middleware/auth.global.ts
-export default defineNuxtRouteMiddleware(async (to, from) => {
-  const auth = useAuth();
+export default defineNuxtRouteMiddleware(async (to) => {
+  const { loadProfile } = useAuth();
   const user = useSupabaseUser();
+  await loadProfile();
 
   // Маршруты, доступные без авторизации
   const publicRoutes = [
