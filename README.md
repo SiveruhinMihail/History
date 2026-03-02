@@ -156,7 +156,7 @@ klio/
 Или используйте **GitHub Actions** – готовый workflow находится в `.github/workflows/deploy.yml`.
 
 После деплоя сайт будет доступен по адресу:  
-`https://<username>.github.io/klio/`
+`https://Lum1nous.github.io/klio/`
 
 ---
 
@@ -168,7 +168,7 @@ klio/
 
 ## ✍️ Авторы
 
-- **Ваше имя** – [GitHub](https://github.com/Lum1nous)
+- **Lum1nous** – [GitHub](https://github.com/Lum1nous)
 
 ---
 
