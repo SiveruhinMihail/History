@@ -9,7 +9,6 @@ type UserUpdate = Database["public"]["Tables"]["user"]["Update"];
 export const useAuth = () => {
   const supabase = useSupabaseClient<Database>();
   const authUser = useSupabaseUser();
-
   const profile = useState<UserRow | null>("auth-profile", () => null);
   const isLoading = useState("auth-loading", () => true);
   const loaded = useState("auth-loaded", () => false);
@@ -37,6 +36,25 @@ export const useAuth = () => {
   if (import.meta.client && !loaded.value) {
     loadProfile();
   }
+
+  let subscription: any;
+  if (import.meta.client) {
+    subscription = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log("[Auth]", event, session?.user?.email);
+      if (event === "SIGNED_OUT") {
+        profile.value = null;
+        isLoading.value = false;
+        loaded.value = false;
+      } else if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
+        await loadProfile(true);
+      } else if (event === "USER_UPDATED") {
+        await loadProfile(true);
+      }
+    });
+  }
+  onUnmounted(() => {
+    subscription?.data?.subscription?.unsubscribe();
+  });
 
   // --- Генерация уникального username ---
   const generateUniqueUsername = async (base: string): Promise<string> => {
