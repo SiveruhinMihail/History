@@ -1,62 +1,87 @@
 // composables/useAuth.ts
 import type { Database } from "~/types/supabase";
+import { tryOnUnmounted } from "@vueuse/core";
 
-// Типы из сгенерированной схемы
 type UserRow = Database["public"]["Tables"]["user"]["Row"];
 type UserInsert = Database["public"]["Tables"]["user"]["Insert"];
-type UserUpdate = Database["public"]["Tables"]["user"]["Update"];
 
 export const useAuth = () => {
   const supabase = useSupabaseClient<Database>();
   const authUser = useSupabaseUser();
+
   const profile = useState<UserRow | null>("auth-profile", () => null);
   const isLoading = useState("auth-loading", () => true);
   const loaded = useState("auth-loaded", () => false);
 
-  // --- Загрузка профиля ---
+  // Загрузка профиля с повторными попытками
   const loadProfile = async (force = false) => {
     if (loaded.value && !force) return profile.value;
     isLoading.value = true;
+
     if (!authUser.value) {
       profile.value = null;
       isLoading.value = false;
       loaded.value = true;
       return null;
     }
-    const { data } = await supabase
-      .from("user")
-      .select("*")
-      .eq("auth_uid", authUser.value.sub)
-      .maybeSingle();
-    profile.value = data;
-    isLoading.value = false;
-    loaded.value = true;
+
+    try {
+      const { data, error } = await supabase
+        .from("user")
+        .select("*")
+        .eq("auth_uid", authUser.value.sub)
+        .maybeSingle();
+
+      if (error) {
+        console.error("Error loading profile:", error);
+        profile.value = null;
+      } else {
+        profile.value = data;
+      }
+    } catch (e) {
+      console.error("Unexpected error loading profile:", e);
+      profile.value = null;
+    } finally {
+      isLoading.value = false;
+      loaded.value = true;
+    }
     return profile.value;
   };
-  if (import.meta.client && !loaded.value) {
-    loadProfile();
-  }
 
-  let subscription: any;
+  // Следим за изменением authUser и перезагружаем профиль
+  watchEffect(async () => {
+    if (authUser.value) {
+      await loadProfile(true);
+    } else {
+      profile.value = null;
+    }
+  });
+
+  // Подписка на события аутентификации (для обновления при refresh токена)
+  let subscription: any = { unsubscribe: () => {} };
   if (import.meta.client) {
-    subscription = supabase.auth.onAuthStateChange(async (event, session) => {
+    const { data } = supabase.auth.onAuthStateChange((event, session) => {
       console.log("[Auth]", event, session?.user?.email);
       if (event === "SIGNED_OUT") {
         profile.value = null;
         isLoading.value = false;
         loaded.value = false;
-      } else if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
-        await loadProfile(true);
-      } else if (event === "USER_UPDATED") {
-        await loadProfile(true);
+      } else if (
+        event === "SIGNED_IN" ||
+        event === "TOKEN_REFRESHED" ||
+        event === "USER_UPDATED"
+      ) {
+        loadProfile(true);
       }
     });
+    subscription = data?.subscription || { unsubscribe: () => {} };
   }
-  onUnmounted(() => {
-    subscription?.data?.subscription?.unsubscribe();
+
+  tryOnUnmounted(() => {
+    subscription.unsubscribe();
   });
 
-  // --- Генерация уникального username ---
+  // Генерация уникального username
   const generateUniqueUsername = async (base: string): Promise<string> => {
     const normalized = base
       .toLowerCase()
@@ -83,7 +108,7 @@ export const useAuth = () => {
     return `${normalized}_${Date.now()}`;
   };
 
-  // --- Регистрация ---
+  // Регистрация
   const signUp = async (
     email: string,
     password: string,
@@ -100,7 +125,6 @@ export const useAuth = () => {
 
     const username = await generateUniqueUsername(displayName);
 
-    // ✅ TS теперь знает все поля!
     const newUser: UserInsert = {
       auth_uid: authData.user.id,
       username,
@@ -113,20 +137,17 @@ export const useAuth = () => {
     };
 
     const { error: profileError } = await supabase.from("user").insert(newUser);
-
     if (profileError) {
       console.error("Ошибка создания профиля:", profileError);
       throw new Error("Не удалось создать профиль");
     }
-    while (!authUser.value) {
-      await new Promise((resolve) => setTimeout(resolve, 50));
-    }
 
+    // Дождёмся загрузки профиля
     await loadProfile(true);
     return authData;
   };
 
-  // --- Вход ---
+  // Вход
   const signIn = async (email: string, password: string) => {
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
@@ -134,60 +155,35 @@ export const useAuth = () => {
     });
     if (error) throw error;
 
-    while (!authUser.value) {
-      await new Promise((resolve) => setTimeout(resolve, 50));
-    }
-
+    // Дождёмся загрузки профиля
     await loadProfile(true);
     return data;
   };
 
-  // --- Выход ---
+  // Выход
   const signOut = async () => {
     const { error } = await supabase.auth.signOut();
     if (error) throw error;
-
-    // Очищаем локальное состояние
     profile.value = null;
     isLoading.value = false;
     loaded.value = false;
-
-    // Редирект на главную
     await navigateTo("/");
   };
 
-  // --- Обновление профиля ---
-  const updateProfile = async (updates: UserUpdate) => {
+  // Обновление профиля
+  const updateProfile = async (updates: Partial<UserRow>) => {
     if (!profile.value) throw new Error("Профиль не загружен");
-
-    // Проверка уникальности username при смене
-    if (updates.username && updates.username !== profile.value.username) {
-      const { data: existing } = await supabase
-        .from("user")
-        .select("username")
-        .eq("username", updates.username)
-        .maybeSingle();
-      if (existing) throw new Error("Этот никнейм уже занят");
-    }
-
     const { data, error } = await supabase
       .from("user")
-      .update({
-        ...updates,
-        updated_at: new Date().toISOString(),
-      })
+      .update({ ...updates, updated_at: new Date().toISOString() })
       .eq("id", profile.value.id)
       .select()
       .single();
-
     if (error) throw error;
     profile.value = data;
     return profile.value;
   };
 
-  // --- Синхронный геттер ---
-  const getCurrentProfile = () => profile.value;
-  // --- Реактивные вычисления ---
   const isAuthenticated = computed(() => !!authUser.value && !!profile.value);
   const userId = computed(() => profile.value?.id);
   const authUid = computed(() => authUser.value?.sub);
@@ -208,13 +204,12 @@ export const useAuth = () => {
     displayName,
     userRole,
     isAdmin,
+    isModerator,
     signUp,
     signIn,
     signOut,
     updateProfile,
-    loadProfile, // метод для ручной загрузки
+    loadProfile,
     generateUniqueUsername,
-    getCurrentProfile,
-    isModerator,
   };
 };

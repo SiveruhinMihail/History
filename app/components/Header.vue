@@ -162,86 +162,88 @@ const dropdownUser = computed(() => ({
       </nav>
 
       <!-- Правая часть -->
-      <div class="flex items-center space-x-3">
-        <!-- Переключатель темы -->
-        <ThemeToggle />
+      <ClientOnly>
+        <div class="flex items-center space-x-3">
+          <!-- Переключатель темы -->
+          <ThemeToggle />
 
-        <!-- Состояние загрузки -->
-        <div v-if="isLoading" class="flex items-center">
-          <div
-            class="w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse"
-          ></div>
-        </div>
-
-        <template v-else>
-          <!-- АВТОРИЗОВАННЫЙ ПОЛЬЗОВАТЕЛЬ -->
-          <div v-if="isAuthenticated" class="flex items-center">
-            <!-- Десктоп: аватарка с дропдауном -->
-            <div class="relative hidden md:block">
-              <button
-                ref="avatarButtonRef"
-                class="flex items-center focus:outline-none"
-                @click="toggleDropdown"
-                @keydown.esc="closeDropdown"
-              >
-                <img
-                  :src="avatarUrl"
-                  class="w-10 h-10 rounded-full shadow-md object-cover border-2 border-transparent hover:border-primary dark:hover:border-accent-400 transition"
-                  alt="User avatar"
-                  loading="lazy"
-                />
-              </button>
-              <transition
-                enter-active-class="transition duration-200 ease-out"
-                enter-from-class="opacity-0 scale-95"
-                enter-to-class="opacity-100 scale-100"
-                leave-active-class="transition duration-150 ease-in"
-                leave-from-class="opacity-100 scale-100"
-                leave-to-class="opacity-0 scale-95"
-              >
-                <Dropdown
-                  v-if="isOpen"
-                  :auth_uid="dropdownUser.auth_uid"
-                  :use="dropdownUser.use"
-                  :email="dropdownUser.email"
-                  :avatar="dropdownUser.avatar"
-                  :role="dropdownUser.role"
-                  class="origin-top-right dropdown-menu"
-                  @logout="handleLogout"
-                />
-              </transition>
-            </div>
-
-            <!-- Мобильные: бургер-иконка -->
-            <div class="md:hidden">
-              <button
-                class="p-2 rounded-md text-gray-600 dark:text-gray-400 hover:text-accent dark:hover:text-accent-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none"
-                @click="toggleMobileMenu"
-                @keydown.esc="closeMobileMenu"
-              >
-                <Bars3Icon v-if="!isMobileMenuOpen" class="w-6 h-6" />
-                <XMarkIcon v-else class="w-6 h-6" />
-              </button>
-            </div>
+          <!-- Состояние загрузки -->
+          <div v-if="isLoading" class="flex items-center">
+            <div
+              class="w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse"
+            ></div>
           </div>
 
-          <!-- НЕАВТОРИЗОВАННЫЙ ПОЛЬЗОВАТЕЛЬ -->
-          <div v-else class="flex items-center space-x-2">
-            <NuxtLink
-              to="/auth/login"
-              class="px-4 py-2 text-sm font-medium text-primary border border-primary rounded-lg hover:bg-primary/5 dark:text-accent-400 dark:border-accent-400 dark:hover:bg-accent/10 transition"
-            >
-              Вход
-            </NuxtLink>
-            <NuxtLink
-              to="/auth/register"
-              class="px-4 py-2 text-sm font-medium text-white bg-primary rounded-lg hover:bg-primary/80 dark:bg-accent-600 dark:hover:bg-accent-700 transition"
-            >
-              Регистрация
-            </NuxtLink>
-          </div>
-        </template>
-      </div>
+          <template v-else>
+            <!-- АВТОРИЗОВАННЫЙ ПОЛЬЗОВАТЕЛЬ -->
+            <div v-if="isAuthenticated" class="flex items-center">
+              <!-- Десктоп: аватарка с дропдауном -->
+              <div class="relative hidden md:block">
+                <button
+                  ref="avatarButtonRef"
+                  class="flex items-center focus:outline-none"
+                  @click="toggleDropdown"
+                  @keydown.esc="closeDropdown"
+                >
+                  <img
+                    :src="avatarUrl"
+                    class="w-10 h-10 rounded-full shadow-md object-cover border-2 border-transparent hover:border-primary dark:hover:border-accent-400 transition"
+                    alt="User avatar"
+                    loading="lazy"
+                  />
+                </button>
+                <transition
+                  enter-active-class="transition duration-200 ease-out"
+                  enter-from-class="opacity-0 scale-95"
+                  enter-to-class="opacity-100 scale-100"
+                  leave-active-class="transition duration-150 ease-in"
+                  leave-from-class="opacity-100 scale-100"
+                  leave-to-class="opacity-0 scale-95"
+                >
+                  <Dropdown
+                    v-if="isOpen"
+                    :auth_uid="dropdownUser.auth_uid"
+                    :use="dropdownUser.use"
+                    :email="dropdownUser.email"
+                    :avatar="dropdownUser.avatar"
+                    :role="dropdownUser.role"
+                    class="origin-top-right dropdown-menu"
+                    @logout="handleLogout"
+                  />
+                </transition>
+              </div>
+
+              <!-- Мобильные: бургер-иконка -->
+              <div class="md:hidden">
+                <button
+                  class="p-2 rounded-md text-gray-600 dark:text-gray-400 hover:text-accent dark:hover:text-accent-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none"
+                  @click="toggleMobileMenu"
+                  @keydown.esc="closeMobileMenu"
+                >
+                  <Bars3Icon v-if="!isMobileMenuOpen" class="w-6 h-6" />
+                  <XMarkIcon v-else class="w-6 h-6" />
+                </button>
+              </div>
+            </div>
+
+            <!-- НЕАВТОРИЗОВАННЫЙ ПОЛЬЗОВАТЕЛЬ -->
+            <div v-else class="flex items-center space-x-2">
+              <NuxtLink
+                to="/auth/login"
+                class="px-4 py-2 text-sm font-medium text-primary border border-primary rounded-lg hover:bg-primary/5 dark:text-accent-400 dark:border-accent-400 dark:hover:bg-accent/10 transition"
+              >
+                Вход
+              </NuxtLink>
+              <NuxtLink
+                to="/auth/register"
+                class="px-4 py-2 text-sm font-medium text-white bg-primary rounded-lg hover:bg-primary/80 dark:bg-accent-600 dark:hover:bg-accent-700 transition"
+              >
+                Регистрация
+              </NuxtLink>
+            </div>
+          </template>
+        </div></ClientOnly
+      >
     </div>
 
     <!-- МОБИЛЬНОЕ МЕНЮ (бургер) -->
