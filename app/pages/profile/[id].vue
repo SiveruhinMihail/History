@@ -347,7 +347,7 @@
               >
                 <div class="flex items-center gap-3 mb-3">
                   <img
-                    :src="community.avatar || '/default-community.png'"
+                    :src="community.avatar || 'https://phlyzwfqtpddvgrprngo.supabase.co/storage/v1/object/public/avatars/default.jpg'"
                     class="w-10 h-10 rounded-full object-cover"
                     alt=""
                     loading="lazy"
